@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Dark-only design system: deep charcoal base, electric purple accent */
+    --background: 240 25% 8%;          /* #0F0F1A */
+    --foreground: 240 10% 96%;
+
+    --card: 240 25% 14%;               /* #1A1A2E */
+    --card-foreground: 240 10% 96%;
+
+    --popover: 240 25% 14%;
+    --popover-foreground: 240 10% 96%;
+
+    --primary: 262 83% 58%;            /* #7C3AED electric purple */
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 262 90% 70%;
+
+    --secondary: 240 20% 20%;
+    --secondary-foreground: 240 10% 96%;
+
+    --muted: 240 20% 18%;
+    --muted-foreground: 240 8% 65%;
+
+    --accent: 262 83% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 20% 22%;
+    --input: 240 20% 22%;
+    --ring: 262 83% 58%;
+
+    --radius: 1.75rem;                  /* 28px - extreme rounding */
+
+    /* Category colors */
+    --cat-beauty: 330 81% 60%;          /* #EC4899 */
+    --cat-fashion: 262 83% 58%;         /* #7C3AED */
+    --cat-food: 21 90% 53%;             /* #F97316 */
+    --cat-fitness: 160 84% 39%;         /* #10B981 */
+    --cat-family: 217 91% 60%;          /* #3B82F6 */
+    --cat-travel: 189 94% 43%;          /* #06B6D4 */
+    --cat-interior: 38 92% 50%;         /* #F59E0B */
+    --cat-pet: 350 89% 60%;             /* #F43F5E */
+
+    --gradient-mesh: radial-gradient(at 20% 20%, hsl(262 83% 30% / 0.6) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(220 80% 30% / 0.5) 0px, transparent 50%),
+                     radial-gradient(at 70% 80%, hsl(262 90% 50% / 0.4) 0px, transparent 50%),
+                     radial-gradient(at 0% 100%, hsl(220 60% 25% / 0.5) 0px, transparent 50%);
+
+    --shadow-glow: 0 0 40px hsl(262 83% 58% / 0.35);
+    --shadow-tile: 0 8px 32px hsl(240 30% 4% / 0.6);
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  html, body, #root { height: 100%; }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  .tile {
+    @apply bg-card rounded-[28px] shadow-[var(--shadow-tile)] border border-border/40;
+  }
+  .glow-hover {
+    @apply transition-all duration-300 hover:shadow-[var(--shadow-glow)];
+  }
+  .mesh-bg {
+    background-color: hsl(var(--card));
+    background-image: var(--gradient-mesh);
+    background-size: 200% 200%;
+    animation: mesh-drift 18s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes mesh-drift {
+  0%   { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
