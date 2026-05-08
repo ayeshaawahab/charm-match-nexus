@@ -24,12 +24,8 @@ export function useUserIds() {
         if (!cancelled) setInfluencerId(data?.id ?? null)
       }
       if (role === 'brand') {
-        const { data } = await supabase
-          .from('brands')
-          .select('id')
-          .eq('user_id', uid)
-          .maybeSingle()
-        if (!cancelled) setBrandId(data?.id ?? null)
+        // profiles.id === auth user id (standard Supabase pattern; no separate brands table)
+        if (!cancelled) setBrandId(uid)
       }
       if (!cancelled) setLoading(false)
     })()

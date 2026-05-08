@@ -46,7 +46,7 @@ export const InfluencerCard = ({ inf, index }: { inf: Influencer; index: number 
             </span>
           </div>
         </div>
-        <SimilarityRing value={inf.similarity} />
+        <SimilarityRing value={inf.engagement} />
       </div>
 
       <div className="grid grid-cols-2 gap-2 text-xs">
