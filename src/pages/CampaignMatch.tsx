@@ -104,7 +104,7 @@ function CampaignMatchInner() {
       avatar_url: r.avatar_url,
       engagement_rate: Number(r.engagement_rate ?? 0),
       rate_per_post: r.rate_per_post != null ? Number(r.rate_per_post) : null,
-      match_score: Math.round(Math.max(0, Math.min(1, Number(r.similarity ?? 0))) * 100),
+      match_score: Math.round(Math.max(0, Math.min(1, Number(r.similarity ?? 0))) * 10000) / 100,
     }));
     setResults(matches);
 
@@ -318,7 +318,7 @@ function CampaignMatchInner() {
                     </div>
                     <div className="flex flex-col items-end gap-1.5 shrink-0">
                       <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${scoreColor(r.match_score)}`}>
-                        {r.match_score}% match
+                        {r.match_score.toFixed(2)}% match
                       </span>
                       {r.rate_per_post != null && (
                         <span
