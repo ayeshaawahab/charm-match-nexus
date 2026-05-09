@@ -5,7 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { CATEGORIES } from "@/lib/categories";
 import { formatFollowers } from "@/lib/mock-data";
 
-export type SortKey = "similarity" | "followers" | "engagement";
+export type SortKey = "followers" | "engagement";
 
 interface Props {
   query: string;
@@ -36,7 +36,7 @@ export const FilterBar = (p: Props) => (
         />
       </div>
       <div className="flex items-center gap-2 bg-muted/40 rounded-2xl p-1">
-        {(["similarity", "followers", "engagement"] as SortKey[]).map((s) => (
+        {(["followers", "engagement"] as SortKey[]).map((s) => (
           <button
             key={s}
             onClick={() => p.onSort(s)}

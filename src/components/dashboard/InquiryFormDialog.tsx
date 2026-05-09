@@ -10,10 +10,11 @@ import { supabase } from "@/lib/supabase";
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  influencerId: string;
   influencerName: string;
 }
 
-export const InquiryFormDialog = ({ open, onOpenChange, influencerName }: Props) => {
+export const InquiryFormDialog = ({ open, onOpenChange, influencerId, influencerName }: Props) => {
   const [campaignName, setCampaignName] = useState("");
   const [message, setMessage] = useState("");
   const [budget, setBudget] = useState("");
@@ -35,7 +36,7 @@ export const InquiryFormDialog = ({ open, onOpenChange, influencerName }: Props)
       const brandId = sessionData.session?.user.id ?? null;
 
       const { error } = await supabase.from("inquiries").insert({
-        influencer_name: influencerName,
+        influencer_id: influencerId,
         brand_id: brandId,
         campaign_description: `${campaignName}\n\n${message}`,
         budget_range: budget,

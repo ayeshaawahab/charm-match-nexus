@@ -60,8 +60,8 @@ function CampaignMatchInner() {
       form.target_audience.includes(a) ? form.target_audience.filter((x) => x !== a) : [...form.target_audience, a],
     );
 
-  const step1Valid = form.name.trim() && form.brand_instagram.trim() && Number(form.max_budget) > 0;
-  const step2Valid = form.target_audience.length > 0 && form.preferred_tier && form.description.trim();
+  const step1Valid = form.name.trim() && form.brand_instagram.trim();
+  const step2Valid = true;
 
   const next = () => setStep((s) => Math.min(3, s + 1));
 
@@ -86,46 +86,27 @@ function CampaignMatchInner() {
       toast({ title: "Could not save campaign", description: insertErr.message, variant: "destructive" });
     }
 
-    const { data: rows, error: queryErr } = await supabase
-      .from("influencers")
-      .select("id, name, niche, avatar_url, engagement_rate, rate_per_post")
-      .order("engagement_rate", { ascending: false })
-      .limit(5);
+    const { data: rows, error: rpcErr } = await supabase.rpc(
+      "match_influencers_for_brand",
+      { p_brand_id: brandId, p_match_count: 10 },
+    );
 
-    if (queryErr) {
-      // Retry without rate_per_post in case the column doesn't exist
-      const fallback = await supabase
-        .from("influencers")
-        .select("id, name, niche, avatar_url, engagement_rate")
-        .order("engagement_rate", { ascending: false })
-        .limit(5);
-      if (fallback.error) {
-        toast({ title: "Could not load matches", description: fallback.error.message, variant: "destructive" });
-        setSubmitting(false);
-        return;
-      }
-      const matches: MatchResult[] = (fallback.data ?? []).map((r: any) => ({
-        id: String(r.id),
-        name: r.name,
-        niche: r.niche,
-        avatar_url: r.avatar_url,
-        engagement_rate: Number(r.engagement_rate ?? 0),
-        rate_per_post: null,
-        match_score: Math.min(100, Math.round(Number(r.engagement_rate ?? 0) * 10 + Math.random() * 20)),
-      }));
-      setResults(matches);
-    } else {
-      const matches: MatchResult[] = (rows ?? []).map((r: any) => ({
-        id: String(r.id),
-        name: r.name,
-        niche: r.niche,
-        avatar_url: r.avatar_url,
-        engagement_rate: Number(r.engagement_rate ?? 0),
-        rate_per_post: r.rate_per_post != null ? Number(r.rate_per_post) : null,
-        match_score: Math.min(100, Math.round(Number(r.engagement_rate ?? 0) * 10 + Math.random() * 20)),
-      }));
-      setResults(matches);
+    if (rpcErr) {
+      toast({ title: "Could not load matches", description: rpcErr.message, variant: "destructive" });
+      setSubmitting(false);
+      return;
     }
+
+    const matches: MatchResult[] = (rows ?? []).map((r: any) => ({
+      id: String(r.id),
+      name: r.name,
+      niche: r.niche,
+      avatar_url: r.avatar_url,
+      engagement_rate: Number(r.engagement_rate ?? 0),
+      rate_per_post: r.rate_per_post != null ? Number(r.rate_per_post) : null,
+      match_score: Math.round(Math.max(0, Math.min(1, Number(r.similarity ?? 0))) * 100),
+    }));
+    setResults(matches);
 
     toast({ title: "Campaign launched", description: "Top creator matches are ready below." });
     setSubmitting(false);
@@ -194,9 +175,9 @@ function CampaignMatchInner() {
                   <Label>Brand Instagram handle</Label>
                   <Input value={form.brand_instagram} onChange={(e) => update("brand_instagram", e.target.value)} placeholder="@yourbrand" />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 opacity-40">
                   <Label>Max budget (USD)</Label>
-                  <Input type="number" min={0} value={form.max_budget} onChange={(e) => update("max_budget", e.target.value)} placeholder="5000" />
+                  <Input type="number" min={0} value={form.max_budget} onChange={(e) => update("max_budget", e.target.value)} placeholder="5000" disabled />
                 </div>
               </motion.div>
             )}
@@ -204,57 +185,44 @@ function CampaignMatchInner() {
             {step === 2 && (
               <motion.div key="s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
                 <h2 className="text-xl font-bold">Targeting</h2>
-                <div className="space-y-2">
+                <div className="space-y-2 opacity-40">
                   <Label>Target audience</Label>
                   <div className="flex flex-wrap gap-2">
-                    {AUDIENCES.map((a) => {
-                      const active = form.target_audience.includes(a);
-                      return (
-                        <button
-                          key={a}
-                          type="button"
-                          onClick={() => toggleAudience(a)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                            active
-                              ? "bg-primary text-primary-foreground border-primary shadow-[var(--shadow-glow)]"
-                              : "bg-muted/40 text-muted-foreground border-border hover:border-primary/60"
-                          }`}
-                        >
-                          {a}
-                        </button>
-                      );
-                    })}
+                    {AUDIENCES.map((a) => (
+                      <button
+                        key={a}
+                        type="button"
+                        disabled
+                        className="px-3 py-1.5 rounded-full text-xs font-semibold border bg-muted/40 text-muted-foreground border-border cursor-not-allowed"
+                      >
+                        {a}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 opacity-40">
                   <Label>Preferred influencer tier</Label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {TIERS.map((t) => {
-                      const active = form.preferred_tier === t;
-                      return (
-                        <button
-                          key={t}
-                          type="button"
-                          onClick={() => update("preferred_tier", t)}
-                          className={`px-3 py-2 rounded-2xl text-sm font-semibold border transition-all ${
-                            active
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "bg-muted/40 text-foreground border-border hover:border-primary/60"
-                          }`}
-                        >
-                          {t}
-                        </button>
-                      );
-                    })}
+                    {TIERS.map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        disabled
+                        className="px-3 py-2 rounded-2xl text-sm font-semibold border bg-muted/40 text-foreground border-border cursor-not-allowed"
+                      >
+                        {t}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 opacity-40">
                   <Label>Campaign description</Label>
                   <Textarea
                     rows={5}
                     value={form.description}
                     onChange={(e) => update("description", e.target.value)}
                     placeholder="Describe your goals, deliverables, and creative direction..."
+                    disabled
                   />
                 </div>
               </motion.div>
@@ -313,7 +281,7 @@ function CampaignMatchInner() {
           <section className="mt-10">
             <div className="flex items-center gap-2 mb-4">
               <Trophy className="w-5 h-5 text-primary" />
-              <h2 className="text-xl font-bold">Top 5 matches</h2>
+              <h2 className="text-xl font-bold">Top 10 matches</h2>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               {results.map((r, i) => {

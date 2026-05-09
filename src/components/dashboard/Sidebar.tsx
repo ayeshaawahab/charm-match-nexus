@@ -9,12 +9,11 @@ import {
   LogOut,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { NavLink } from "@/components/NavLink";
-
-type Role = "brand" | "influencer";
+import { useRole } from "@/hooks/useRole";
 
 type NavItem = {
   icon: typeof Zap;
@@ -36,20 +35,7 @@ const influencerItems: NavItem[] = [
 ];
 
 const useRoleItems = (): NavItem[] => {
-  const [role, setRole] = useState<Role>("brand");
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      const r = (data.session?.user.user_metadata?.role as Role) ?? "brand";
-      setRole(r);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      const r = (s?.user.user_metadata?.role as Role) ?? "brand";
-      setRole(r);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, []);
-
+  const { role } = useRole();
   return useMemo(() => (role === "influencer" ? influencerItems : brandItems), [role]);
 };
 

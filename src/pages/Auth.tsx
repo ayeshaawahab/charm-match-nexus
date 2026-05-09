@@ -28,18 +28,22 @@ const Auth = () => {
   const [socialHandle, setSocialHandle] = useState("");
   const [registerLoading, setRegisterLoading] = useState(false);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        const r = (data.session.user.user_metadata?.role as Role) ?? "brand";
-        navigate(r === "influencer" ? "/influencer/dashboard" : "/", { replace: true });
-      }
-    });
-  }, [navigate]);
-
-  const redirectByRole = (r: Role) => {
+  const redirectByRole = async (uid: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", uid)
+      .maybeSingle();
+    const r = (data?.role as Role) ?? "brand";
     navigate(r === "influencer" ? "/influencer/dashboard" : "/", { replace: true });
   };
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user?.id) redirectByRole(data.session.user.id);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,9 +57,8 @@ const Auth = () => {
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
       return;
     }
-    const r = (data.user?.user_metadata?.role as Role) ?? "brand";
     toast({ title: "Welcome back" });
-    redirectByRole(r);
+    if (data.user?.id) await redirectByRole(data.user.id);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -73,42 +76,16 @@ const Auth = () => {
         },
       },
     });
+    setRegisterLoading(false);
     if (error) {
-      setRegisterLoading(false);
       toast({ title: "Registration failed", description: error.message, variant: "destructive" });
       return;
     }
 
-    const userId = data.user?.id;
-    if (userId) {
-      const nowIso = new Date().toISOString();
-      try {
-        if (role === "influencer") {
-          await supabase.from("influencers").insert({
-            user_id: userId,
-            name: fullName,
-            instagram_handle: socialHandle,
-            niche: "",
-            created_at: nowIso,
-          });
-        } else {
-          await supabase.from("brands").insert({
-            user_id: userId,
-            name: companyName,
-            created_at: nowIso,
-          });
-        }
-        await supabase.from("profiles").insert({
-          id: userId,
-          email,
-          full_name: fullName,
-          created_at: nowIso,
-        });
-      } catch (err) {
-        console.error("Profile bootstrap failed", err);
-      }
-    }
-    setRegisterLoading(false);
+    // The handle_new_user() trigger creates the profile, user_roles, and (for
+    // influencers) an influencers row from raw_user_meta_data — no client-side
+    // bootstrap needed.
+
     if (!data.session) {
       toast({
         title: "Check your email",
@@ -118,7 +95,7 @@ const Auth = () => {
       return;
     }
     toast({ title: "Account created" });
-    redirectByRole(role);
+    if (data.user?.id) await redirectByRole(data.user.id);
   };
 
   return (

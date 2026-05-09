@@ -11,7 +11,6 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 type Booking = {
   id: string;
   campaign_name: string | null;
-  brand_id: string | null;
   status: string;
   created_at: string;
 };
@@ -33,38 +32,39 @@ function InfluencerDashboardInner() {
     (async () => {
       const { data: sessionData } = await supabase.auth.getSession();
       const u = sessionData.session?.user;
-      const meta = (u?.user_metadata ?? {}) as Record<string, any>;
-      setUsername(meta.full_name ?? meta.name ?? u?.email?.split("@")[0] ?? "Creator");
+      setUsername(u?.email?.split("@")[0] ?? "Creator");
 
-      const socialHandle = meta.social_handle ?? null;
-      if (socialHandle) {
-        const { data: influencerRow } = await supabase
-          .from("influencers")
-          .select("id, name, follower_count, engagement_rate")
-          .eq("instagram_handle", socialHandle)
-          .maybeSingle();
-        const influencerId = influencerRow?.id ?? null;
-        if (influencerRow?.name) setUsername(influencerRow.name);
-        setFollowers(influencerRow?.follower_count ?? 0);
-        setEngagement(influencerRow?.engagement_rate ?? 0);
+      if (!u?.id) {
+        setLoading(false);
+        return;
+      }
 
-        if (influencerId) {
+      const { data: influencerRow } = await supabase
+        .from("influencers")
+        .select("id, name, follower_count, engagement_rate")
+        .eq("user_id", u.id)
+        .maybeSingle();
+
+      if (influencerRow?.name) setUsername(influencerRow.name);
+      setFollowers(influencerRow?.follower_count ?? 0);
+      setEngagement(Number(influencerRow?.engagement_rate ?? 0));
+
+      const influencerId = influencerRow?.id ?? null;
+      if (influencerId) {
         const [active, completed, recentRes] = await Promise.all([
           supabase.from("bookings").select("id", { count: "exact", head: true }).eq("influencer_id", influencerId).eq("status", "active"),
           supabase.from("bookings").select("id", { count: "exact", head: true }).eq("influencer_id", influencerId).eq("status", "completed"),
-          supabase.from("bookings").select("id, campaign_name, brand_id, status, created_at").eq("influencer_id", influencerId).order("created_at", { ascending: false }).limit(5),
+          supabase.from("bookings").select("id, status, created_at, campaign:campaigns(name)").eq("influencer_id", influencerId).order("created_at", { ascending: false }).limit(5),
         ]);
         setActiveCount(active.count ?? 0);
         setCompletedCount(completed.count ?? 0);
-        setRecent((recentRes.data ?? []) as Booking[]);
-        } else {
-          setActiveCount(0);
-          setCompletedCount(0);
-          setRecent([]);
-        }
+        setRecent((recentRes.data ?? []).map((b: any) => ({
+          id: b.id,
+          campaign_name: b.campaign?.name ?? null,
+          status: b.status,
+          created_at: b.created_at,
+        })));
       } else {
-        setFollowers(0);
-        setEngagement(0);
         setActiveCount(0);
         setCompletedCount(0);
         setRecent([]);

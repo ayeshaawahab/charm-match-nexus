@@ -228,6 +228,7 @@ export const InfluencerProfileModal = () => {
       <InquiryFormDialog
         open={inquiryOpen}
         onOpenChange={setInquiryOpen}
+        influencerId={inf?.id ?? ""}
         influencerName={inf?.name ?? ""}
       />
     </>
