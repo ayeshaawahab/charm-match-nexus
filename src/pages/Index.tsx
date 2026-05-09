@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Sidebar, MobileNav } from "@/components/dashboard/Sidebar";
 import { Hero } from "@/components/dashboard/Hero";
 import { StatsBar } from "@/components/dashboard/StatsBar";
-import { BrandSelector } from "@/components/dashboard/BrandSelector";
 import { CategoryShowcase } from "@/components/dashboard/CategoryShowcase";
 import { FilterBar, type SortKey } from "@/components/dashboard/FilterBar";
 import { MatchResults } from "@/components/dashboard/MatchResults";
@@ -14,7 +13,7 @@ const IndexInner = () => {
   const [active, setActive] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
   const [minFollowers, setMinFollowers] = useState(0);
-  const [sort, setSort] = useState<SortKey>("similarity");
+  const [sort, setSort] = useState<SortKey>("followers");
 
   const toggle = (k: string) => {
     setActive((prev) => {

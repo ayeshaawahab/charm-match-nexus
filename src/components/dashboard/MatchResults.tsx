@@ -22,9 +22,8 @@ export const MatchResults = ({ active, query, minFollowers, sort, onReset }: Pro
       (active.size === 0 || active.has(i.category))
     );
     r = [...r].sort((a, b) => {
-      if (sort === "followers") return b.followers - a.followers;
       if (sort === "engagement") return b.engagement - a.engagement;
-      return b.similarity - a.similarity;
+      return b.followers - a.followers;
     });
     return r;
   }, [data, query, minFollowers, sort, active]);
