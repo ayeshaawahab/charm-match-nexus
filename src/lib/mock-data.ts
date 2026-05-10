@@ -30,7 +30,7 @@ export const SELECTED_BRAND: Brand = {
 export const STATS = [
   { value: 100, suffix: "+", label: "Influencers" },
   { value: 8,   suffix: "",  label: "Categories" },
-  { value: 5,   suffix: "",  label: "Pakistani Brands" },
+  { value: 50,   suffix: "+",  label: "Pakistani Brands" },
 ];
 
 export const formatFollowers = (n: number): string => {
