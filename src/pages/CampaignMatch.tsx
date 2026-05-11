@@ -54,6 +54,21 @@ function CampaignMatchInner() {
 
   const update = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm((f) => ({ ...f, [k]: v }));
 
+  useEffect(() => {
+    if (brandId) {
+      supabase
+        .from("profiles")
+        .select("instagram_handle")
+        .eq("id", brandId)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data && data.instagram_handle) {
+            update("brand_instagram", data.instagram_handle);
+          }
+        });
+    }
+  }, [brandId]);
+
   const toggleAudience = (a: string) =>
     update(
       "target_audience",
@@ -171,9 +186,9 @@ function CampaignMatchInner() {
                   <Label>Campaign name</Label>
                   <Input value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Summer Glow 2026" />
                 </div>
-                <div className="space-y-2">
-                  <Label>Brand Instagram handle</Label>
-                  <Input value={form.brand_instagram} onChange={(e) => update("brand_instagram", e.target.value)} placeholder="@yourbrand" />
+                <div className="space-y-2 opacity-60">
+                  <Label>Brand Instagram handle (from Profile)</Label>
+                  <Input value={form.brand_instagram} disabled placeholder="@yourbrand" />
                 </div>
                 <div className="space-y-2 opacity-40">
                   <Label>Max budget (USD)</Label>

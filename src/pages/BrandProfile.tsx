@@ -17,6 +17,7 @@ type Form = {
   description: string;
   website: string;
   budget_range: string;
+  instagram_handle: string;
 };
 
 const empty: Form = {
@@ -26,6 +27,7 @@ const empty: Form = {
   description: "",
   website: "",
   budget_range: "",
+  instagram_handle: "",
 };
 
 function BrandProfileInner() {
@@ -59,6 +61,7 @@ function BrandProfileInner() {
           description: (row.description as string) ?? "",
           website: (row.website as string) ?? "",
           budget_range: (row.budget_range as string) ?? "",
+          instagram_handle: (row.instagram_handle as string) ?? "",
         });
       }
       setLoading(false);
@@ -71,21 +74,51 @@ function BrandProfileInner() {
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("profiles").upsert({
-      id: authId,
+    const { error } = await supabase.from("profiles").update({
       company_name: form.company_name,
       full_name: form.full_name,
       industry: form.industry,
       description: form.description,
       website: form.website,
       budget_range: form.budget_range,
-    });
-    setSaving(false);
+      instagram_handle: form.instagram_handle,
+    }).eq('id', authId);
+    
     if (error) {
+      setSaving(false);
       toast.error("Could not save profile", { description: error.message });
       return;
     }
-    toast.success("Profile saved");
+
+    if (form.instagram_handle) {
+      toast.loading("Generating brand vector...", { id: "vector-gen" });
+      try {
+        const res = await fetch("http://localhost:8000/api/generate-brand-vector", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            brand_id: authId,
+            instagram_username: form.instagram_handle
+          })
+        });
+        
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.detail || "Failed to generate vector");
+        }
+        
+        toast.success("Profile saved and vector generated!", { id: "vector-gen" });
+      } catch (err: any) {
+        toast.error("Profile saved, but vector generation failed", { 
+          id: "vector-gen",
+          description: err.message
+        });
+      }
+    } else {
+      toast.success("Profile saved");
+    }
+    
+    setSaving(false);
   };
 
   return (
@@ -129,6 +162,18 @@ function BrandProfileInner() {
             <Field label="Budget range">
               <Input value={form.budget_range} onChange={(e) => update("budget_range", e.target.value)} placeholder="e.g. $2,000 - $10,000" />
             </Field>
+            <div className="pt-4 border-t border-border">
+              <Field label="Brand Instagram Profile Link / Username">
+                <Input 
+                  value={form.instagram_handle} 
+                  onChange={(e) => update("instagram_handle", e.target.value)} 
+                  placeholder="e.g. @zara or https://instagram.com/zara" 
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  When updated, our servers will automatically generate an AI vector to match you with top influencers.
+                </p>
+              </Field>
+            </div>
 
             <Button onClick={handleSave} disabled={saving} className="rounded-2xl w-full h-11">
               {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : "Save profile"}
