@@ -93,7 +93,7 @@ function BrandProfileInner() {
     if (form.instagram_handle) {
       toast.loading("Generating brand vector...", { id: "vector-gen" });
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+        const apiUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
         const res = await fetch(`${apiUrl}/api/generate-brand-vector`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
