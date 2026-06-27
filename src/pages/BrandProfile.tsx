@@ -91,7 +91,7 @@ function BrandProfileInner() {
     }
 
     if (form.instagram_handle) {
-      toast.loading("Generating brand vector...", { id: "vector-gen" });
+      toast.loading("Generating brand vector... (this takes ~2 mins)", { id: "vector-gen" });
       try {
         const apiUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
         const res = await fetch(`${apiUrl}/api/generate-brand-vector`, {
@@ -108,7 +108,17 @@ function BrandProfileInner() {
           throw new Error(errData.detail || "Failed to generate vector");
         }
         
-        toast.success("Profile saved and vector generated!", { id: "vector-gen" });
+        // Polling logic: check Supabase every 5 seconds until embedding is populated
+        const pollInterval = setInterval(async () => {
+          const { data, error } = await supabase.from("profiles").select("embedding").eq("id", authId).single();
+          if (data && data.embedding !== null) {
+            clearInterval(pollInterval);
+            toast.success("Profile saved and vector generation complete!", { id: "vector-gen" });
+          } else if (error) {
+            console.error("Polling error:", error);
+          }
+        }, 5000);
+        
       } catch (err: any) {
         toast.error("Profile saved, but vector generation failed", { 
           id: "vector-gen",
