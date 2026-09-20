@@ -75,7 +75,7 @@ function CampaignMatchInner() {
       form.target_audience.includes(a) ? form.target_audience.filter((x) => x !== a) : [...form.target_audience, a],
     );
 
-  const step1Valid = form.name.trim() && form.brand_instagram.trim();
+  const step1Valid = !!form.name.trim();
   const step2Valid = true;
 
   const next = () => setStep((s) => Math.min(3, s + 1));
@@ -186,9 +186,9 @@ function CampaignMatchInner() {
                   <Label>Campaign name</Label>
                   <Input value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Summer Glow 2026" />
                 </div>
-                <div className="space-y-2 opacity-60">
-                  <Label>Brand Instagram handle (from Profile)</Label>
-                  <Input value={form.brand_instagram} disabled placeholder="@yourbrand" />
+                <div className="space-y-2">
+                  <Label>Brand Instagram handle (optional)</Label>
+                  <Input value={form.brand_instagram} onChange={(e) => update("brand_instagram", e.target.value)} placeholder="@yourbrand" />
                 </div>
                 <div className="space-y-2">
                   <Label>Max budget (USD)</Label>
