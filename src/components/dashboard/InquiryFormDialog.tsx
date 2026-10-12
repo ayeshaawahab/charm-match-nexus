@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export const InquiryFormDialog = ({ open, onOpenChange, influencerId, influencerName }: Props) => {
+  const navigate = useNavigate();
   const [campaignName, setCampaignName] = useState("");
   const [message, setMessage] = useState("");
   const [budget, setBudget] = useState("");
@@ -34,11 +36,17 @@ export const InquiryFormDialog = ({ open, onOpenChange, influencerId, influencer
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const brandId = sessionData.session?.user.id ?? null;
+      if (!brandId) {
+        toast.error("Please log in to send an inquiry");
+        onOpenChange(false);
+        navigate("/auth?mode=login");
+        return;
+      }
 
       const { error } = await supabase.from("inquiries").insert({
         influencer_id: influencerId,
         brand_id: brandId,
-        campaign_description: `${campaignName}\n\n${message}`,
+        campaign_description: `${campaignName}\n\n${message}${timeline ? `\n\nTimeline: ${timeline}` : ""}`,
         budget_range: budget,
         status: "pending",
       });

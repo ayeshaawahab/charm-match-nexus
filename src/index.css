@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,37 +6,40 @@
 
 @layer base {
   :root {
-    /* Dark-only design system: deep charcoal base, electric purple accent */
-    --background: 240 25% 8%;          /* #0F0F1A */
-    --foreground: 240 10% 96%;
+    /* Light design system: warm brown/gold palette */
+    --background: 30 22% 96%;          /* #F8F6F4 */
+    --foreground: 41 44% 10%;          /* #241D0E */
 
-    --card: 240 25% 14%;               /* #1A1A2E */
-    --card-foreground: 240 10% 96%;
+    --card: 33 20% 91%;                /* #EDE9E4 */
+    --card-foreground: 41 44% 10%;     /* #241D0E */
 
-    --popover: 240 25% 14%;
-    --popover-foreground: 240 10% 96%;
+    --popover: 0 0% 100%;              /* #FFFFFF */
+    --popover-foreground: 41 44% 10%;  /* #241D0E */
 
-    --primary: 262 83% 58%;            /* #7C3AED electric purple */
+    --primary: 15 65% 47%;              /* #C7522A rust-orange */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 262 90% 70%;
+    --primary-glow: 31 79% 57%;         /* #E8953A */
 
-    --secondary: 240 20% 20%;
-    --secondary-foreground: 240 10% 96%;
+    --secondary: 28 21% 41%;           /* #7E6753 brown overlay */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 20% 18%;
-    --muted-foreground: 240 8% 65%;
+    --muted: 34 20% 93%;               /* #F1EEEA input bg */
+    --muted-foreground: 29 11% 51%;    /* #908275 */
 
-    --accent: 262 83% 58%;
+    --accent: 38 59% 48%;              /* #C28D32 gold */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 20% 22%;
-    --input: 240 20% 22%;
-    --ring: 262 83% 58%;
+    --border: 30 11% 82%;              /* #D7D2CD */
+    --input: 34 20% 93%;               /* #F1EEEA */
+    --ring: 15 65% 47%;                 /* #C7522A */
 
     --radius: 1.75rem;                  /* 28px - extreme rounding */
+
+    /* Stats bar / warm cream tint */
+    --stats-bg: 38 40% 90%;             /* #EFE6D5 */
 
     /* Category colors */
     --cat-beauty: 330 81% 60%;          /* #EC4899 */
@@ -48,13 +51,13 @@
     --cat-interior: 38 92% 50%;         /* #F59E0B */
     --cat-pet: 350 89% 60%;             /* #F43F5E */
 
-    --gradient-mesh: radial-gradient(at 20% 20%, hsl(262 83% 30% / 0.6) 0px, transparent 50%),
-                     radial-gradient(at 80% 0%, hsl(220 80% 30% / 0.5) 0px, transparent 50%),
-                     radial-gradient(at 70% 80%, hsl(262 90% 50% / 0.4) 0px, transparent 50%),
-                     radial-gradient(at 0% 100%, hsl(220 60% 25% / 0.5) 0px, transparent 50%);
+    --gradient-mesh: radial-gradient(at 20% 20%, hsl(31 79% 65% / 0.35) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(15 65% 55% / 0.3) 0px, transparent 50%),
+                     radial-gradient(at 70% 80%, hsl(38 59% 63% / 0.3) 0px, transparent 50%),
+                     radial-gradient(at 0% 100%, hsl(28 21% 50% / 0.25) 0px, transparent 50%);
 
-    --shadow-glow: 0 0 40px hsl(262 83% 58% / 0.35);
-    --shadow-tile: 0 8px 32px hsl(240 30% 4% / 0.6);
+    --shadow-glow: 0 0 40px hsl(15 65% 47% / 0.25);
+    --shadow-tile: 0 8px 32px hsl(30 11% 60% / 0.25);
   }
 }
 

@@ -75,7 +75,7 @@ function CampaignMatchInner() {
       form.target_audience.includes(a) ? form.target_audience.filter((x) => x !== a) : [...form.target_audience, a],
     );
 
-  const step1Valid = !!form.name.trim();
+  const step1Valid = form.name.trim() && form.brand_instagram.trim();
   const step2Valid = true;
 
   const next = () => setStep((s) => Math.min(3, s + 1));
@@ -186,13 +186,13 @@ function CampaignMatchInner() {
                   <Label>Campaign name</Label>
                   <Input value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Summer Glow 2026" />
                 </div>
-                <div className="space-y-2">
-                  <Label>Brand Instagram handle (optional)</Label>
-                  <Input value={form.brand_instagram} onChange={(e) => update("brand_instagram", e.target.value)} placeholder="@yourbrand" />
+                <div className="space-y-2 opacity-60">
+                  <Label>Brand Instagram handle (from Profile)</Label>
+                  <Input value={form.brand_instagram} disabled placeholder="@yourbrand" />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 opacity-40">
                   <Label>Max budget (USD)</Label>
-                  <Input type="number" min={0} value={form.max_budget} onChange={(e) => update("max_budget", e.target.value)} placeholder="5000" />
+                  <Input type="number" min={0} value={form.max_budget} onChange={(e) => update("max_budget", e.target.value)} placeholder="5000" disabled />
                 </div>
               </motion.div>
             )}
@@ -200,57 +200,44 @@ function CampaignMatchInner() {
             {step === 2 && (
               <motion.div key="s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
                 <h2 className="text-xl font-bold">Targeting</h2>
-                <div className="space-y-2">
+                <div className="space-y-2 opacity-40">
                   <Label>Target audience</Label>
                   <div className="flex flex-wrap gap-2">
-                    {AUDIENCES.map((a) => {
-                      const selected = form.target_audience.includes(a);
-                      return (
-                        <button
-                          key={a}
-                          type="button"
-                          onClick={() => toggleAudience(a)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
-                            selected
-                              ? "border-primary text-primary bg-transparent"
-                              : "bg-muted/40 text-muted-foreground border-border hover:border-primary/50 hover:text-foreground"
-                          }`}
-                        >
-                          {a}
-                        </button>
-                      );
-                    })}
+                    {AUDIENCES.map((a) => (
+                      <button
+                        key={a}
+                        type="button"
+                        disabled
+                        className="px-3 py-1.5 rounded-full text-xs font-semibold border bg-muted/40 text-muted-foreground border-border cursor-not-allowed"
+                      >
+                        {a}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 opacity-40">
                   <Label>Preferred influencer tier</Label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {TIERS.map((t) => {
-                      const selected = form.preferred_tier === t;
-                      return (
-                        <button
-                          key={t}
-                          type="button"
-                          onClick={() => update("preferred_tier", t)}
-                          className={`px-3 py-2 rounded-2xl text-sm font-semibold border transition-colors ${
-                            selected
-                              ? "border-primary text-primary bg-transparent"
-                              : "bg-muted/40 text-foreground border-border hover:border-primary/50"
-                          }`}
-                        >
-                          {t}
-                        </button>
-                      );
-                    })}
+                    {TIERS.map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        disabled
+                        className="px-3 py-2 rounded-2xl text-sm font-semibold border bg-muted/40 text-foreground border-border cursor-not-allowed"
+                      >
+                        {t}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 opacity-40">
                   <Label>Campaign description</Label>
                   <Textarea
                     rows={5}
                     value={form.description}
                     onChange={(e) => update("description", e.target.value)}
                     placeholder="Describe your goals, deliverables, and creative direction..."
+                    disabled
                   />
                 </div>
               </motion.div>
@@ -277,7 +264,7 @@ function CampaignMatchInner() {
               variant="ghost"
               disabled={submitting}
               className="rounded-2xl"
-              onClick={() => (step > 1 ? setStep(step - 1) : navigate("/"))}
+              onClick={() => (step > 1 ? setStep(step - 1) : navigate(-1))}
             >
               <ChevronLeft className="w-4 h-4" /> Back
             </Button>

@@ -12,8 +12,13 @@ import CampaignMatch from "./pages/CampaignMatch.tsx";
 import BrandCampaigns from "./pages/BrandCampaigns.tsx";
 import BrandProfile from "./pages/BrandProfile.tsx";
 import InfluencerProfile from "./pages/InfluencerProfile.tsx";
+import InfluencerProfileEdit from "./pages/InfluencerProfileEdit.tsx";
 import InfluencerPackages from "./pages/InfluencerPackages.tsx";
 import InfluencerDashboardPage from "./pages/InfluencerDashboardPage.tsx";
+import InfluencerBookings from "./pages/InfluencerBookings.tsx";
+import BrandDashboardPage from "./pages/BrandDashboardPage.tsx";
+import BrandExplore from "./pages/BrandExplore.tsx";
+import BrandNewCampaign from "./pages/BrandNewCampaign.tsx";
 
 const queryClient = new QueryClient();
 
@@ -25,13 +30,18 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+          <Route path="/" element={<Index />} />
           <Route path="/campaign-match" element={<ProtectedRoute><CampaignMatch /></ProtectedRoute>} />
+          <Route path="/brand/campaigns/new" element={<ProtectedRoute><BrandNewCampaign /></ProtectedRoute>} />
           <Route path="/brand/campaigns" element={<ProtectedRoute><BrandCampaigns /></ProtectedRoute>} />
           <Route path="/brand/profile" element={<ProtectedRoute><BrandProfile /></ProtectedRoute>} />
           <Route path="/influencer/profile" element={<ProtectedRoute><InfluencerProfile /></ProtectedRoute>} />
+          <Route path="/influencer/profile/edit" element={<ProtectedRoute><InfluencerProfileEdit /></ProtectedRoute>} />
           <Route path="/influencer/packages" element={<ProtectedRoute><InfluencerPackages /></ProtectedRoute>} />
           <Route path="/influencer/dashboard" element={<ProtectedRoute><InfluencerDashboardPage /></ProtectedRoute>} />
+          <Route path="/influencer/bookings" element={<ProtectedRoute><InfluencerBookings /></ProtectedRoute>} />
+          <Route path="/brand/dashboard" element={<ProtectedRoute><BrandDashboardPage /></ProtectedRoute>} />
+          <Route path="/brand/explore" element={<ProtectedRoute><BrandExplore /></ProtectedRoute>} />
           <Route path="/influencer/*" element={<Navigate to="/influencer/dashboard" replace />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useUserIds } from "@/hooks/useUserIds";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { InfluencerSidebar } from "@/components/influencer/InfluencerSidebar";
+import { InfluencerNavbar } from "@/components/influencer/InfluencerNavbar";
 
 type Tier = "Basic" | "Standard" | "Premium";
 type Pkg = {
@@ -32,7 +34,7 @@ const tierStyle = (t: Tier) =>
   : "bg-muted text-muted-foreground border-border";
 
 function InfluencerPackagesInner() {
-  useEffect(() => { document.title = "Influencer Packages | MatchEngine"; }, []);
+  useEffect(() => { document.title = "Packages | MatchEngine"; }, []);
   const navigate = useNavigate();
   const { influencerId, loading: idsLoading } = useUserIds();
   const [loading, setLoading] = useState(true);
@@ -50,117 +52,130 @@ function InfluencerPackagesInner() {
     setLoading(false);
   };
 
-  useEffect(() => {
-    if (idsLoading) return;
-    load(influencerId);
-  }, [idsLoading, influencerId]);
+  useEffect(() => { load(influencerId ?? null); }, [influencerId]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this package?")) return;
     const { error } = await supabase.from("influencer_packages").delete().eq("id", id);
     if (error) { toast.error("Delete failed", { description: error.message }); return; }
     setPkgs((p) => p.filter((x) => x.id !== id));
-    toast.success("Package deleted");
+    toast.success("Deleted");
   };
 
+  if (idsLoading) {
+    return (
+      <main className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </main>
+    );
+  }
+
   return (
-    <main className="min-h-screen mesh-bg px-4 py-10 md:px-10">
-      <div className="max-w-5xl mx-auto">
-        <button
-          type="button"
-          onClick={() => navigate("/influencer/dashboard")}
-          className="flex items-center gap-2 text-sm text-muted-foreground mb-6 hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-        </button>
-        <header className="mb-6 flex items-end justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-semibold mb-3">
-              <Sparkles className="w-3.5 h-3.5" /> My Packages
-            </div>
-            <h1 className="text-3xl font-extrabold tracking-tight">Packages</h1>
-          </div>
-          <Button onClick={() => { setEditing(null); setOpen(true); }} className="rounded-2xl">
-            <Plus className="w-4 h-4" /> Add Package
-          </Button>
-        </header>
+    <div className="flex min-h-screen bg-background">
+      <InfluencerSidebar />
 
-        {loading || idsLoading ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[0,1,2].map((i) => (
-              <div key={i} className="tile p-5 space-y-3">
-                <Skeleton className="h-5 w-1/2" />
-                <Skeleton className="h-4 w-1/3" />
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-9 w-full rounded-2xl" />
+      <main className="flex-1 flex flex-col">
+        <InfluencerNavbar />
+
+        <div className="flex-1 px-6 py-10">
+          <div className="max-w-5xl">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 text-sm text-muted-foreground mb-6 hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+            </button>
+            <header className="mb-6 flex items-end justify-between gap-4 flex-wrap">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-semibold mb-3">
+                  <Sparkles className="w-3.5 h-3.5" /> My Packages
+                </div>
+                <h1 className="text-3xl font-extrabold tracking-tight">Packages</h1>
               </div>
-            ))}
-          </div>
-        ) : pkgs.length === 0 ? (
-          <div className="tile p-12 flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-primary/15 text-primary flex items-center justify-center mb-4">
-              <PackageIcon className="w-7 h-7" />
-            </div>
-            <h3 className="text-lg font-bold">No packages yet</h3>
-            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              Create your first package so brands can book you instantly.
-            </p>
-            <Button onClick={() => { setEditing(null); setOpen(true); }} className="rounded-2xl mt-5">
-              <Plus className="w-4 h-4" /> Create Package
-            </Button>
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {pkgs.map((p, i) => (
-              <motion.article
-                key={p.id}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="tile p-5 flex flex-col gap-3"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-bold truncate">{p.name}</h3>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${tierStyle(p.tier)}`}>
-                    {p.tier}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground line-clamp-3">{p.description ?? "—"}</p>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  <Stat label="Price" value={`$${Number(p.price).toLocaleString()}`} />
-                  <Stat label="Days" value={`${p.delivery_days}`} />
-                  <Stat label="Revisions" value={`${p.revisions}`} />
-                </div>
-                <div className="flex gap-2 mt-auto pt-2">
-                  <Button variant="secondary" className="rounded-2xl flex-1" onClick={() => { setEditing(p); setOpen(true); }}>
-                    <Pencil className="w-4 h-4" /> Edit
-                  </Button>
-                  <Button variant="ghost" className="rounded-2xl text-destructive hover:text-destructive" onClick={() => handleDelete(p.id)}>
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </motion.article>
-            ))}
-          </div>
-        )}
-      </div>
+              <Button onClick={() => { setEditing(null); setOpen(true); }} className="rounded-2xl">
+                <Plus className="w-4 h-4" /> Add Package
+              </Button>
+            </header>
 
-      <PackageDialog
-        open={open}
-        onClose={() => setOpen(false)}
-        editing={editing}
-        userId={influencerId}
-        onSaved={(saved) => {
-          setPkgs((prev) => {
-            const idx = prev.findIndex((p) => p.id === saved.id);
-            if (idx === -1) return [...prev, saved];
-            const next = [...prev];
-            next[idx] = saved;
-            return next;
-          });
-        }}
-      />
-    </main>
+            {loading || idsLoading ? (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {[0,1,2].map((i) => (
+                  <div key={i} className="tile p-5 space-y-3">
+                    <Skeleton className="h-5 w-1/2" />
+                    <Skeleton className="h-4 w-1/3" />
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-9 w-full rounded-2xl" />
+                  </div>
+                ))}
+              </div>
+            ) : pkgs.length === 0 ? (
+              <div className="tile p-12 flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-full bg-primary/15 text-primary flex items-center justify-center mb-4">
+                  <PackageIcon className="w-7 h-7" />
+                </div>
+                <h3 className="text-lg font-bold">No packages yet</h3>
+                <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+                  Create your first package so brands can book you instantly.
+                </p>
+                <Button onClick={() => { setEditing(null); setOpen(true); }} className="rounded-2xl mt-5">
+                  <Plus className="w-4 h-4" /> Create Package
+                </Button>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {pkgs.map((p, i) => (
+                  <motion.article
+                    key={p.id}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="tile p-5 flex flex-col gap-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-bold truncate">{p.name}</h3>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${tierStyle(p.tier)}`}>
+                        {p.tier}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-3">{p.description ?? "—"}</p>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <Stat label="Price" value={`$${Number(p.price).toLocaleString()}`} />
+                      <Stat label="Days" value={`${p.delivery_days}`} />
+                      <Stat label="Revisions" value={`${p.revisions}`} />
+                    </div>
+                    <div className="flex gap-2 mt-auto pt-2">
+                      <Button variant="secondary" className="rounded-2xl flex-1" onClick={() => { setEditing(p); setOpen(true); }}>
+                        <Pencil className="w-4 h-4" /> Edit
+                      </Button>
+                      <Button variant="ghost" className="rounded-2xl text-destructive hover:text-destructive" onClick={() => handleDelete(p.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </motion.article>
+                ))}
+              </div>
+            )}
+
+            <PackageDialog
+              open={open}
+              onClose={() => setOpen(false)}
+              editing={editing}
+              userId={influencerId}
+              onSaved={(saved) => {
+                setPkgs((prev) => {
+                  const idx = prev.findIndex((p) => p.id === saved.id);
+                  if (idx === -1) return [...prev, saved];
+                  const next = [...prev];
+                  next[idx] = saved;
+                  return next;
+                });
+              }}
+            />
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }
 
@@ -172,7 +187,11 @@ const Stat = ({ label, value }: { label: string; value: string }) => (
 );
 
 const PackageDialog = ({
-  open, onClose, editing, userId, onSaved,
+  open,
+  onClose,
+  editing,
+  userId,
+  onSaved,
 }: {
   open: boolean;
   onClose: () => void;
@@ -180,95 +199,86 @@ const PackageDialog = ({
   userId: string | null;
   onSaved: (p: Pkg) => void;
 }) => {
-  const [form, setForm] = useState({
-    name: "", tier: "Basic" as Tier, description: "",
-    price: "", delivery_days: "", revisions: "",
-  });
+  const [form, setForm] = useState<Partial<Pkg>>(editing ?? {});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (editing) {
-      setForm({
-        name: editing.name,
-        tier: editing.tier,
-        description: editing.description ?? "",
-        price: String(editing.price),
-        delivery_days: String(editing.delivery_days),
-        revisions: String(editing.revisions),
-      });
-    } else {
-      setForm({ name: "", tier: "Basic", description: "", price: "", delivery_days: "", revisions: "" });
-    }
+    if (editing) setForm(editing);
+    else setForm({});
   }, [editing, open]);
 
   const handleSave = async () => {
-    if (!form.name.trim()) { toast.error("Name is required"); return; }
+    if (!userId || !form.name) return;
     setSaving(true);
-    const payload = {
-      influencer_id: userId,
-      name: form.name,
-      tier: form.tier.toLowerCase(),
-      description: form.description,
-      price: Number(form.price) || 0,
-      delivery_days: Number(form.delivery_days) || 0,
-      revisions: Number(form.revisions) || 0,
-    };
-    const q = editing
-      ? supabase.from("influencer_packages").update(payload).eq("id", editing.id).select().single()
-      : supabase.from("influencer_packages").insert(payload).select().single();
-    const { data, error } = await q;
+    const { data, error } = editing
+      ? await supabase.from("influencer_packages").update(form).eq("id", editing.id).select().maybeSingle()
+      : await supabase
+          .from("influencer_packages")
+          .insert([{ ...form, influencer_id: userId }])
+          .select()
+          .maybeSingle();
     setSaving(false);
-    if (error || !data) { toast.error("Save failed", { description: error?.message }); return; }
-    onSaved(data as Pkg);
-    toast.success(editing ? "Package updated" : "Package created");
+    if (error) { toast.error("Save failed", { description: error.message }); return; }
+    if (data) onSaved(data as Pkg);
     onClose();
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-card border-border/60">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="rounded-3xl">
         <DialogHeader>
-          <DialogTitle>{editing ? "Edit package" : "Add package"}</DialogTitle>
+          <DialogTitle className="font-serif text-lg">{editing ? "Edit Package" : "New Package"}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="space-y-3 py-4">
           <div className="space-y-2">
-            <Label>Name</Label>
-            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            <Label>Name *</Label>
+            <Input
+              value={form.name ?? ""}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="rounded-2xl"
+            />
           </div>
           <div className="space-y-2">
             <Label>Tier</Label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="flex gap-2">
               {TIERS.map((t) => (
-                <button
+                <Button
                   key={t}
-                  type="button"
+                  variant={form.tier === t ? "default" : "ghost"}
+                  className="rounded-2xl"
                   onClick={() => setForm({ ...form, tier: t })}
-                  className={`px-3 py-2 rounded-2xl text-sm font-semibold border transition-all ${
-                    form.tier === t ? "bg-primary text-primary-foreground border-primary" : "bg-muted/40 text-foreground border-border hover:border-primary/60"
-                  }`}
                 >
                   {t}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
           <div className="space-y-2">
             <Label>Description</Label>
-            <Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            <Textarea
+              value={form.description ?? ""}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="rounded-2xl resize-none"
+              rows={2}
+            />
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             <div className="space-y-2">
               <Label>Price</Label>
-              <Input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+              <Input type="number" value={form.price ?? ""} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
             </div>
             <div className="space-y-2">
-              <Label>Delivery (days)</Label>
-              <Input type="number" value={form.delivery_days} onChange={(e) => setForm({ ...form, delivery_days: e.target.value })} />
+              <Label>Delivery Days</Label>
+              <Input
+                type="number"
+                value={form.delivery_days ?? ""}
+                onChange={(e) => setForm({ ...form, delivery_days: Number(e.target.value) })}
+              />
             </div>
-            <div className="space-y-2">
-              <Label>Revisions</Label>
-              <Input type="number" value={form.revisions} onChange={(e) => setForm({ ...form, revisions: e.target.value })} />
-            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Revisions</Label>
+            <Input type="number" value={form.revisions ?? ""} onChange={(e) => setForm({ ...form, revisions: Number(e.target.value) })} />
           </div>
         </div>
         <DialogFooter>

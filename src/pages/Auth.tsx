@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,13 @@ type Role = "brand" | "influencer";
 
 const Auth = () => {
   const navigate = useNavigate();
-  const [tab, setTab] = useState("login");
+  const [searchParams] = useSearchParams();
+  const { session, loading: authLoading } = useAuth();
+  const [tab, setTab] = useState(searchParams.get("mode") === "signup" ? "register" : "login");
+
+  useEffect(() => {
+    setTab(searchParams.get("mode") === "signup" ? "register" : "login");
+  }, [searchParams]);
 
   // login
   const [loginEmail, setLoginEmail] = useState("");
@@ -35,15 +42,14 @@ const Auth = () => {
       .eq("user_id", uid)
       .maybeSingle();
     const r = (data?.role as Role) ?? "brand";
-    navigate(r === "influencer" ? "/influencer/dashboard" : "/", { replace: true });
+    navigate(r === "influencer" ? "/influencer/dashboard" : "/brand/dashboard", { replace: true });
   };
 
+  // already signed in → skip auth page
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user?.id) redirectByRole(data.session.user.id);
-    });
+    if (!authLoading && session?.user?.id) redirectByRole(session.user.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [authLoading, session]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,10 +108,6 @@ const Auth = () => {
     <div className="min-h-screen mesh-bg flex items-center justify-center p-4">
       <div className="tile w-full max-w-md p-7">
         <div className="mb-6 text-center">
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-semibold mb-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-soft" />
-            Secure Access
-          </span>
           <h1 className="text-2xl font-extrabold tracking-tight">
             Welcome to{" "}
             <span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
