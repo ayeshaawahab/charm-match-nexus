@@ -9,6 +9,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        serif: ['Fraunces', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -45,6 +46,7 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        stats: "hsl(var(--stats-bg))",
         category: {
           beauty: "hsl(var(--cat-beauty))",
           fashion: "hsl(var(--cat-fashion))",

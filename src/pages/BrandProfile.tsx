@@ -143,7 +143,7 @@ function BrandProfileInner() {
       <div className="max-w-3xl mx-auto">
         <button
           type="button"
-          onClick={() => navigate("/")}
+          onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-sm text-muted-foreground mb-6 hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Directory

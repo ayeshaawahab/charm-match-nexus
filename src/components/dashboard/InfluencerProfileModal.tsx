@@ -43,16 +43,56 @@ function nicheToCategory(niche?: string | null): CategoryKey {
   return "fashion";
 }
 
-export const InfluencerProfileModal = () => {
-  const [open, setOpen] = useState(false);
+interface ModalProps {
+  /** Controlled mode: open modal for this influencer id (used by BrandExplore). */
+  influencerId?: string;
+  onClose?: () => void;
+}
+
+export const InfluencerProfileModal = ({ influencerId, onClose }: ModalProps = {}) => {
+  const [open, setOpenState] = useState(!!influencerId);
+  const setOpen = (v: boolean) => {
+    setOpenState(v);
+    if (!v) onClose?.();
+  };
   const [loading, setLoading] = useState(false);
   const [inf, setInf] = useState<InfluencerRow | null>(null);
   const [packages, setPackages] = useState<PackageRow[]>([]);
   const [inquiryOpen, setInquiryOpen] = useState(false);
   
 
+  // Controlled mode: load by id
+  useEffect(() => {
+    if (!influencerId) return;
+    let cancelled = false;
+    (async () => {
+      setOpenState(true);
+      setLoading(true);
+      setInf(null);
+      setPackages([]);
+      const { data: row } = await supabase
+        .from("influencers")
+        .select("id, name, niche, bio, avatar_url, follower_count, engagement_rate, rate_per_post, instagram_handle, tiktok_handle, youtube_handle, twitter_handle")
+        .eq("id", influencerId)
+        .maybeSingle();
+      if (cancelled) return;
+      if (row) {
+        setInf(row as InfluencerRow);
+        const { data: pkgs } = await supabase
+          .from("influencer_packages")
+          .select("id, tier, name, price, delivery_days")
+          .eq("influencer_id", influencerId);
+        if (cancelled) return;
+        setPackages((pkgs as PackageRow[]) ?? []);
+      }
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [influencerId]);
+
   // Listen for "View Profile" button clicks via event delegation
   useEffect(() => {
+    if (influencerId) return; // controlled mode: no click delegation
     const handler = async (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       if (!target) return;
@@ -89,7 +129,7 @@ export const InfluencerProfileModal = () => {
 
     document.addEventListener("click", handler, true);
     return () => document.removeEventListener("click", handler, true);
-  }, []);
+  }, [influencerId]);
 
   // ESC to close
   useEffect(() => {

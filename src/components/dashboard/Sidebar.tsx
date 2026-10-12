@@ -46,7 +46,7 @@ export const Sidebar = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate("/auth", { replace: true });
+    navigate("/", { replace: true });
   };
 
   return (
